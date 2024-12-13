@@ -17,6 +17,7 @@ class Parser:
         else:
             self.token, self.lexeme = None, None
 
+
     def gen_instr(self, op, oprnd):
         """Generate an instruction and add it to the instruction table."""
         self.instr_table.append({"address": self.instr_address, "op": op, "oprnd": oprnd})
@@ -36,7 +37,7 @@ class Parser:
 
     def error_message(self, message):
         """Display an error message and advance to the next token."""
-        print(f"Error: {message}")
+        print(f"Error: {message}. Current token: {self.token}, lexeme: {self.lexeme}")
         self.lexer_next()  # Advance to avoid repeated errors
 
     def print_symbol_table(self):
@@ -102,7 +103,7 @@ class Parser:
             self.T_prime()
 
     def F(self):
-        """Factor: F -> id { gen_instr (PUSHM, get_address(id)) }"""
+        """Factor: F -> id { gen_instr (PUSHM, get_address(id)) } | integer { gen_instr (PUSHI, integer) }"""
         if self.token == "identifier":
             if self.lexeme not in self.symbol_table:
                 self.error_message(f"Identifier '{self.lexeme}' not declared.")
@@ -112,8 +113,15 @@ class Parser:
             else:
                 self.gen_instr("PUSHM", address)
             self.lexer_next()
+        elif self.token == "integer":
+            self.gen_instr("PUSHI", self.lexeme)
+            self.lexer_next()
+        elif self.token == "real":
+            self.gen_instr("PUSHF", self.lexeme)
+            self.lexer_next()
         else:
-            self.error_message("identifier expected")
+            self.error_message("identifier or literal expected")
+
 
     def compound_statement(self):
         """Compound Statement: <Compound> -> { <Statements> }"""
@@ -206,6 +214,8 @@ class Parser:
             self.get_statement()
         elif self.token == "keyword" and self.lexeme == "put":
             self.put_statement()
+        elif self.token == "keyword" and self.lexeme == "if":
+            self.if_statement()
         elif self.token == "separator" and self.lexeme == "{":
             self.compound_statement()
         else:
