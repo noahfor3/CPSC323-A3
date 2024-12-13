@@ -1,0 +1,7 @@
+integer a, b, result;
+get(a);
+get(b);
+if (a > b) {
+    result = a;
+} fi
+put(result);
